@@ -1,50 +1,30 @@
-name: Tweet on GitHub Events
+name: Post to Twitter
 
 on:
-  issues:
-    types: [opened]
-  pull_request:
-    types: [opened]
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
 
 jobs:
   tweet:
+    if: contains(github.event.head_commit.message, '[release]') || contains(github.event.head_commit.message, '[major]')
     runs-on: ubuntu-latest
 
     steps:
-      - name: Post tweet on issue
-        if: github.event_name == 'issues'
-        uses: appleboy/twitter-action@v0.2.20
-        with:
-          consumer_key: ${{ secrets.TWITTER_API_KEY }}
-          consumer_secret: ${{ secrets.TWITTER_API_KEY_SECRET }}
-          access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
-          status: |
-            New GitHub Issue: #${{ github.event.issue.number }} - ${{ github.event.issue.title }}
-            ${{ github.event.issue.html_url }}
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Post tweet on pull request
-        if: github.event_name == 'pull_request'
-        uses: appleboy/twitter-action@v0.2.20
+      - name: Post to Twitter
+        uses: peter-evans/twitter-action@v1
         with:
-          consumer_key: ${{ secrets.TWITTER_API_KEY }}
-          consumer_secret: ${{ secrets.TWITTER_API_KEY_SECRET }}
-          access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
           status: |
-            New Pull Request: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
-            ${{ github.event.pull_request.html_url }}
-
-      - name: Post tweet on release
-        if: github.event_name == 'release'
-        uses: appleboy/twitter-action@v0.2.20
-        with:
-          consumer_key: ${{ secrets.TWITTER_API_KEY }}
-          consumer_secret: ${{ secrets.TWITTER_API_KEY_SECRET }}
-          access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
-          status: |
-            New Release: ${{ github.event.release.tag_name }} - ${{ github.event.release.name }}
-            ${{ github.event.release.html_url }}
+            Significant update to repository: ${{ github.repository }}
+            Description: ${{ github.event.repository.description || 'No description provided.' }}
+            Commit Message: ${{ github.event.head_commit.message || 'No commit message provided.' }}
+            Author: ${{ github.event.head_commit.author.name || 'Unknown author' }}
+            Timestamp: ${{ github.event.head_commit.timestamp || 'Unknown time' }}
+        env:
+          TWITTER_CONSUMER_KEY: ${{ secrets.TWITTER_CONSUMER_KEY }}
+          TWITTER_CONSUMER_SECRET: ${{ secrets.TWITTER_CONSUMER_SECRET }}
+          TWITTER_ACCESS_TOKEN_KEY: ${{ secrets.TWITTER_ACCESS_TOKEN_KEY }}
+          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
