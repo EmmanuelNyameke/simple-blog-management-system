@@ -1,0 +1,50 @@
+name: Tweet on GitHub Events
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+  release:
+    types: [published]
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Post tweet on issue
+        if: github.event_name == 'issues'
+        uses: appleboy/twitter-action@v0.2.20
+        with:
+          consumer_key: ${{ secrets.TWITTER_API_KEY }}
+          consumer_secret: ${{ secrets.TWITTER_API_KEY_SECRET }}
+          access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          status: |
+            New GitHub Issue: #${{ github.event.issue.number }} - ${{ github.event.issue.title }}
+            ${{ github.event.issue.html_url }}
+
+      - name: Post tweet on pull request
+        if: github.event_name == 'pull_request'
+        uses: appleboy/twitter-action@v0.2.20
+        with:
+          consumer_key: ${{ secrets.TWITTER_API_KEY }}
+          consumer_secret: ${{ secrets.TWITTER_API_KEY_SECRET }}
+          access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          status: |
+            New Pull Request: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+            ${{ github.event.pull_request.html_url }}
+
+      - name: Post tweet on release
+        if: github.event_name == 'release'
+        uses: appleboy/twitter-action@v0.2.20
+        with:
+          consumer_key: ${{ secrets.TWITTER_API_KEY }}
+          consumer_secret: ${{ secrets.TWITTER_API_KEY_SECRET }}
+          access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          status: |
+            New Release: ${{ github.event.release.tag_name }} - ${{ github.event.release.name }}
+            ${{ github.event.release.html_url }}
